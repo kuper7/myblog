@@ -4,15 +4,20 @@
 
 ​		下图展示了，人工主观语音评估mos-lqs，双端和单端客观语音评估mos-lqo这三种方法的差异。
 
-![img](file:///C:\Users\pangc\AppData\Local\Temp\ksohtml15964\wps1.png)
+<center><img src="https://pangcong1117.github.io/myblog/images/语音评估模式图.png"/>
 
 ​		p563算法可以被想象成一个专家使用测试设备如传统的听筒侦听一个真实的电话。这个形象的表达解释了算法主要的应用并且允许使用者去对P563算法获得的分数进行评分。P563算法给出的质量分通过在测量点连接一个常规的听筒基于感知质量预测。
 
 ​		因此，侦听设备是p563算法的一部分，信号首先会被预处理。整个预处理过程由话音接收端模型开始。之后是通过语音活动检测算法（VAD）信号中包含话音的部分并计算话音电平。最终话音电平被调整到-26dbov（3300以下）。预处理过的语音数据将分别进行几项独立分析研究，像一层多个传感器，检测一组表征信号的参数。之后基于一组关键参数，开始分析主要的失真类型。
 
-​		关键参数和分析出的主要失真类别等用于调整语音质量模型。尽管多个不同失真发生在同一个信号中，但某些失真要比其他失真作用更显著，这提供了一个基于感知的加权。P563算法方框图下图给出。
+​		关键参数和分析出的主要失真类别等用于调整语音质量模型。尽管多个不同失真发生在同一个信号中，但某些失真要比其他失真作用更显著，这提供了一个基于感知的加权。P563的基础方框图下图给出:
 
-![img](file:///C:\Users\pangc\AppData\Local\Temp\ksohtml15964\wps2.png)
+
+
+<center>
+    <img src="https://pangcong1117.github.io/myblog/images/P563算法方框图.png"/>
+
+​	
 
 ​		P563算法的信号参数化可以被分为以下三个独立的函数部分，这与失真的主要类别相对应：
 
@@ -36,7 +41,10 @@ $$
 
 ​		VAD算法基于一个自适应能量阈值，逐帧检测音频能量，超过阈值则为活跃语音信号，否则为无声段（背景噪声段），详细框图如下：
 
-![img](file:///C:\Users\pangc\AppData\Local\Temp\ksohtml15964\wps8.png)
+<center>
+    <img src="https://pangcong1117.github.io/myblog/images/VAD算法框图.png"/>
+
+
 
 ​		自适应能量阈值th~est~首先设定为全局均值，之后自适应逼近环境噪声值，公式如下：
 $$
@@ -77,7 +85,14 @@ $$
 
 ​		基音周期和基音频率数据在后续的P563算法中是需要的，基音周期及频率数据提取框图如下：
 
-![img](file:///C:\Users\pangc\AppData\Local\Temp\ksohtml15964\wps10.png)
+
+
+<center>
+    <img src="https://pangcong1117.github.io/myblog/images/基音周期及频率数据提取框图.png"/>
+
+​    
+
+
 
 ##### 2.1.6.1  Pitch period estimate and voice/unvoiced decision基音周期估计及浊音/清音判决
 
@@ -115,4 +130,3 @@ $$
 
 ​		未完待续
 
-测试
