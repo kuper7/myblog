@@ -140,7 +140,9 @@ $$
 
 ​		为了更清晰的讲解基音周期的检测的原理，借用一张图片来说明，下图是某帧语音的自相关函数图，采样率16k：
 
-![某帧的自相关函数图片](C:\Users\Administrator\Desktop\gitpro\myblog\images\某帧的自相关函数图片.jpg)
+<center><img src="https://pangcong1117.github.io/myblog/images/某帧的自相关函数图片.jpg"/>
+
+
 
 ​		该帧的自相关函数中，除去第一个最大值后（0处），最大值Kmax= 114，那么该帧对应的基频16kHz/114=140Hz。由于P563算法使用的采样率为8khz，所以与本图计算基频周期有较小的差别。更多语音基音检测的细节可参考这篇文章，可以加深对语音基频的理解，通俗易懂，博客链接https://blog.csdn.net/zouxy09/article/details/9141875。
 
@@ -182,26 +184,30 @@ y_{i}=0  & \text{if } i为其他
 
 ​		**算法具体流程为：在各浊音区段的一致性基音（持续时间最长最稳定的基音）检测到之后，启动之后的基音标记鉴别（流程图F2处）。在各浊音段本地检查，尝试将各段的音高标记更合理地放置在输入音频波形中并符合一致性阈值（流程图G2处）。如果不符合一致性检测，则删除当前不合理的基音标记，算法向后移动（流程图F3处），一区段一区段的进行检查。通过这种方式，实现所有浊音段的基音标记遵循一致性。**
 
-
-
-![pitch-inconsistency handling](C:\Users\Administrator\Desktop\gitpro\myblog\images\pitch-inconsistency handling.png)
-
-
+<center><img src="https://pangcong1117.github.io/myblog/images/pitch-inconsistency handling.png"/>
 
 
 
 ##### 2.1.6.4  Boundary review浊音区段边界检查
 
-​		由于处理的语音是以帧为框架来划分的，浊音区段有看似合理的基音标记，在边界处可能是不对的。边界处的基音检测误差大大增加，甚至无法检测。P563针对这个问题，采用了边界检查算法。下图为浊音段边界基音检查流程图（Voiced segment boundary pitch review），展示了用于评估和纠正浊音部分边界标记的算法。
+​		由于处理的语音是**以帧为框架来划分**的，浊音区段有看似合理的基音标记，在边界处可能是不对的。**边界处的基音检测误差大大增加，甚至无法检测**。P563针对这个问题，采用了边界检查算法。下图为浊音段边界基音检查流程图（Voiced segment boundary pitch review），展示了用于评估和纠正浊音部分边界标记的算法。
 
 
 
-![Voiced segment boundary pitch review](C:\Users\Administrator\Desktop\gitpro\myblog\images\Voiced segment boundary pitch review.png)
+<center><img src="https://pangcong1117.github.io/myblog/images/Voiced segment boundary pitch review.png"/>
 
-​		在区段边界处，不断尝试可超过原定边界放置候选的更长基音周期（try 周期更大，频率更小基音记为pitch-cycle）进行评估(图6,C1)。将这个新定义的pitch-cycle与三个阈值进行比较(图6,D1, E2, F3)。如果没通过任意一个测试，它将被pass掉，这个最后已知（成功通过三个阈值测试）的基音标记将被删除(图6,G1)。这个基音标记被移除的位置被存储起来，用于后续的稳定性评估(图6,G2)。
 
-​		在下一轮迭代中，对旧段边界内的基音标记进行详细检查。如果新定义的基音周期满足所有定义的阈值范围，则认定它为有效，并添加基音标记(图6,G3)。通过这种方式，分段可以缩小和扩展，根据下面定义的规则，若都满足，则将分段连接在一起。当接受新的音高标记时，将与之前删除的标记进行比较(图6,H3)。当发现他们匹配时，则该段分界是稳定的，不需要进一步扩展或缩小。
+
+​		在区段边界处，不断尝试可超过原定边界放置候选的更长基音周期（**try 周期更大，频率更小基音记为pitch-cycle**）进行评估(图6,C1)。将这个新定义的pitch-cycle与三个阈值进行比较(图6,D1, E2, F3)。**如果没通过任意一个测试，它将被pass掉，这个最后已知（成功通过三个阈值测试）的基音标记将被删除(图6,G1)**。这个基音标记被移除的位置被存储起来，用于后续的稳定性评估(图6,G2)。
+
+​		在下一轮迭代中，对旧段边界内的基音标记进行详细检查。如果新定义的基音周期满足所有定义的阈值范围，则认定它为有效，并添加基音标记(图6,G3)。通过这种方式，分段可以缩小和扩展。根据下面定义的规则，若都满足，则将分段连接在一起。而当接受新的音高标记时，将与之前删除的标记进行比较(图6,H3)。当发现他们匹配时，则该段分界是稳定的，不需要进一步扩展或缩小。
 
 - Length of cycle > Pre-determined threshold (Figure 6, D1);
 - RMS energy of cycle > Pre-determined threshold (Figure 6, E2);
 - Frequency content of new and current frame comparable (Figure 6, F3).
+
+
+
+### 2.2	Description of the functional block 'Vocal tract analysis and Unnatural Voice'声道分析与非自然语音分析模块描述
+
+未完待续
