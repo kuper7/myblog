@@ -217,7 +217,7 @@ y_{i}=0  & \text{if } i为其他
 
 #### 2.2.1	Calculation of speech statistics for unnatural voice detection用于非自然语音检测的语音统计学参数计算
 
-​		用于语音的统计学参数主要基于倒谱和LPC参数的高阶统计量分析这两种公认信号处理技术。偏度(skewness)和峰度(kurtosis）这两个高阶矩，特别适用于进一步分析信号的性质。这些是统计信号是统计数据分布非高斯性的经典数字特征。
+​		用于语音的统计学参数主要基于倒谱和LPC参数的高阶统计量分析这两种公认信号处理技术。**偏度(skewness)和峰度(kurtosis）**这两个高阶矩，特别适用于进一步分析信号的性质。这些是统计信号是**统计数据分布非高斯性**的经典数字特征。
 
 ​		下图是语音统计学参数计算流程图Calculation of speech statistics
 
@@ -225,7 +225,8 @@ y_{i}=0  & \text{if } i为其他
 
 <center><img src="https://pangcong1117.github.io/myblog/images/Calculation of speech statistics.png"/>
 
-- 偏度（skewness），是统计数据分布偏斜方向和程度的度量，是统计数据分布非对称程度的数字特征。偏度(Skewness)亦称偏态、偏态系数。偏度表征概率密度曲线相对于平均值不对称程度的特征数。直观看来就是密度函数曲线尾部的相对长度。
+
+- 偏度（skewness），**是统计数据分布偏斜方向和程度的度量，是统计数据分布非对称程度的数字特征**。偏度(Skewness)亦称偏态、偏态系数。偏度表征概率密度曲线相对于平均值不对称程度的特征数。**直观看来就是密度函数曲线尾部的相对长度**。
 
   根据定义，偏度是样本的三阶标准化矩，定义式如下，其中$k_{3}$表示三阶中心矩：
 
@@ -239,9 +240,11 @@ $$
 
 ​				指数分布Exponential：2
 
+​		下图为**不同数据分布的偏态特征图**：
+
 <center><img src="https://pangcong1117.github.io/myblog/images/偏态.jpg"/>
 
-- 峰度（kurtosis）又称峰态系数。表征概率密度曲线在平均值处峰值高低的特征数。直观看来，峰度反映了峰部的尖度。样本的峰度是和正态分布相比较，如果峰度大于三，峰的形状比较尖，比正态分布峰要陡峭。反之亦然。
+- 峰度（kurtosis）又称峰态系数。表征概率密度曲线在平均值处峰值高低的特征数。直观看来，**峰度反映了峰部的尖度**。**样本的峰度是和正态分布相比较，如果峰度大于三，峰的形状比较尖，比正态分布峰要陡峭。反之亦然**。
 
   根据定义，峰度可以表示为四阶标准矩，其中$k^4$表示四阶中心距，$\sigma$是标准差：
   $$
@@ -251,7 +254,7 @@ $$
   $$
   Kurt(X)=\frac{k^4}{\sigma^4}-3
   $$
-  这也被称为超值峰度（excess kurtosis）。“减3”是为了让正态分布的峰度为0（大多数软件对峰度的定义都包含“减3”）。
+  这也被称为超值峰度（excess kurtosis）。**“减3”是为了让正态分布的峰度为0（大多数软件对峰度的定义都包含“减3”）**。
 
   以下是一些典型分布的峰度值:
 
@@ -266,11 +269,17 @@ $$
   Kurt(正态分布)=E[(\frac{X-\mu}{\sigma})^4]-3=E(Z^4)-3=\int_{-\infty}^{+\infty}\frac{x^4e^{-\frac{x^2}{2}}}{\sqrt{2\pi}}dx-3=0
   $$
 
-  <center><img src="https://pangcong1117.github.io/myblog/images/超值峰度.png"/>
-
   
 
-  ##### 2.2.1.1	Calculation of LPCcurt and LPCskew参数LPCcurt和LPCskew的计算
+  下图为**不同数据分布的峰度对比图**：
+
+  <center><img src="https://pangcong1117.github.io/myblog/images/超值峰度.png" width = "500" />
+  
+  
+  
+  
+  
+##### 2.2.1.1	Calculation of LPCcurt and LPCskew参数LPCcurt和LPCskew的计算
 
   未完待续
 
