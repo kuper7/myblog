@@ -210,4 +210,67 @@ y_{i}=0  & \text{if } i为其他
 
 ### 2.2	Description of the functional block 'Vocal tract analysis and Unnatural Voice'声道分析与非自然语音分析模块描述
 
-未完待续
+​		P563算法基于一系列信号参数的集合来分类不自然语音以及进行语音质量评估的。基本上，这些信号参数可以细分为两组：
+
+- Speech statistics语音统计学参数
+- Vocal tract analysis声道分析参数
+
+#### 2.2.1	Calculation of speech statistics for unnatural voice detection用于非自然语音检测的语音统计学参数计算
+
+​		用于语音的统计学参数主要基于倒谱和LPC参数的高阶统计量分析这两种公认信号处理技术。偏度(skewness)和峰度(kurtosis）这两个高阶矩，特别适用于进一步分析信号的性质。这些是统计信号是统计数据分布非高斯性的经典数字特征。
+
+​		下图是语音统计学参数计算流程图Calculation of speech statistics
+
+
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Calculation of speech statistics.png"/>
+
+- 偏度（skewness），是统计数据分布偏斜方向和程度的度量，是统计数据分布非对称程度的数字特征。偏度(Skewness)亦称偏态、偏态系数。偏度表征概率密度曲线相对于平均值不对称程度的特征数。直观看来就是密度函数曲线尾部的相对长度。
+
+  根据定义，偏度是样本的三阶标准化矩，定义式如下，其中$k_{3}$表示三阶中心矩：
+
+$$
+skew(X)=E[(\frac{X-\mu}{\sigma})^3]=\frac{k_{3}}{\sigma_{3}}
+$$
+
+​		以下是一些典型分布的偏态值:
+
+​				拉普拉斯分布Laplace，正态分布normal，均匀分布normal：0
+
+​				指数分布Exponential：2
+
+<center><img src="https://pangcong1117.github.io/myblog/images/偏态.jpg"/>
+
+- 峰度（kurtosis）又称峰态系数。表征概率密度曲线在平均值处峰值高低的特征数。直观看来，峰度反映了峰部的尖度。样本的峰度是和正态分布相比较，如果峰度大于三，峰的形状比较尖，比正态分布峰要陡峭。反之亦然。
+
+  根据定义，峰度可以表示为四阶标准矩，其中$k^4$表示四阶中心距，$\sigma$是标准差：
+  $$
+  E[(\frac{X-\mu}{\sigma})^4]或\frac{k^4}{\sigma^4}
+  $$
+  P563算法中，峰度被定义四阶中心矩除以概率分布方差的平方再减去3：
+  $$
+  Kurt(X)=\frac{k^4}{\sigma^4}-3
+  $$
+  这也被称为超值峰度（excess kurtosis）。“减3”是为了让正态分布的峰度为0（大多数软件对峰度的定义都包含“减3”）。
+
+  以下是一些典型分布的峰度值:
+
+  ​		正态分布normal：0
+
+  ​		拉普拉斯分布：3
+
+  ​		指数分布Exponential：6
+
+  其中正态分布峰度（超值峰度）为0的推理过程：
+  $$
+  Kurt(正态分布)=E[(\frac{X-\mu}{\sigma})^4]-3=E(Z^4)-3=\int_{-\infty}^{+\infty}\frac{x^4e^{-\frac{x^2}{2}}}{\sqrt{2\pi}}dx-3=0
+  $$
+
+  <center><img src="https://pangcong1117.github.io/myblog/images/超值峰度.png"/>
+
+  
+
+  ##### 2.2.1.1	Calculation of LPCcurt and LPCskew参数LPCcurt和LPCskew的计算
+
+  未完待续
+
