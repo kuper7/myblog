@@ -277,9 +277,266 @@ $$
   
   
   
-  
-  
 ##### 2.2.1.1	Calculation of LPCcurt and LPCskew参数LPCcurt和LPCskew的计算
 
-  未完待续
+​		线性预测编码（LPC）的峰度和偏度，以及LPC偏度的绝对值，特别适合于语音信号特性的估计。
 
+​		线性预测分析的基本思想是：**由于语音样点之间存在相关性，所以可以用过去的样点值来预测现在或未来的样点值，即一个语音的抽样能够用过去若干个语音抽样或它们的线性组合来逼近。**预测公式如下：
+$$
+\hat{s}(n)=\sum_{i=1}^{p}a_{i}s(n-1)
+$$
+​		预测误差$\epsilon(n)$为：
+$$
+\epsilon(n)=s(n)-\hat{s}(n)=s(n)-\sum_{i=1}^{p}a_{i}s(n-i)
+$$
+​		通过在**某个准则下使预测误差$\epsilon(n)$达到最小值的方法**来决定唯一的一组预测系数$a_{i}(i=1,2,...,p)$。鉴于语音信号的时变特性，**LPC分析必须按帧进行，使预测误差在某个准则下最小，求预测系数的最佳估值$a_{i}$，这个准则通常采用最小均方误差准则**。
+
+​		P563算法使用的LPC系数的数量为21。
+
+- ​		每帧的**LPC标准差**计算公式如下，其中P为LPC系数数量：
+
+$$
+\sigma_{n}^{LPC}=\frac{1}{P}[\sum_{p=1}^{P}\alpha_{p}^2-\frac{1}{P}(\sum_{p=1}^{P}\alpha_{p})^2]
+$$
+
+
+
+​		通过对每个活跃语音帧的LPC向量求值，得到**LPC峰度和LPC偏度**：
+
+- ​		LPC向量的峰度（kurtosis）计算公式如下，其中P为LPC系数数量
+  $$
+  K_{n}^{LPC}=\frac{1}{P}\sum_{p=1}^{P}(\frac{\alpha_{p}-\frac{1}{P}\sum_{p=1}^{P}\alpha_p}{\sigma_{n}^{LPC}})^4-3
+  $$
+  
+- ​        LPC向量的偏度（skewness）计算公式如下，其中P为LPC系数数量
+
+$$
+S_{n}^{LPC}=\frac{1}{P}\sum_{p=1}^{P}(\frac{\alpha_{p}-\frac{1}{P}\sum_{p=1}^{P}\alpha_p}{\sigma_{n}^{LPC}})^3
+$$
+
+​		结果将在**所有活动语音帧上取平均值**：
+$$
+\overline{K}^{LPC}=\frac{1}{N}\sum_{n=1}^{N}K_{n}^{LPC} \\ \overline{S}^{LPC}=\frac{1}{N}\sum_{n=1}^{N}S_{n}^{LPC}
+$$
+​		式中，n=1...N，N为活跃语音帧的数量，活跃语音帧满足$E_n>E_{minSpeech}$。
+
+
+
+##### 2.2.1.2	Calculation of CepADev, CepCurt and CepSkew 倒谱标准差，倒谱峰度，倒谱偏度计算
+
+​		同理，对于倒谱系数的**标准差，峰度，偏度**的计算与之前内容类似，公式依次给出：
+$$
+\sigma_{n}^{cep}=\frac{1}{M}[\sum_{m=1}^{M}c_m-\frac{1}{M}(\sum_{m=1}^{M}c_m)^2]\\
+K_{n}^{cep}=\frac{1}{M}\sum_{m=1}^{M}(\frac{c_m-\frac{1}{M}\sum_{m=1}^{M}c_m}{\sigma_{n}^{cep}})^4-3\\
+S_{n}^{cep}=\frac{1}{M}\sum_{m=1}^{M}(\frac{c_m-\frac{1}{M}\sum_{m=1}^{M}c_m}{\sigma_{n}^{cep}})^3
+$$
+​		式中M为倒谱系数数量，m为倒谱系数下标
+
+​		同理，结果将**在所有活动语音帧上取平均值**：
+$$
+\overline{K}^{cep}=\frac{1}{N}\sum_{n=1}^{N}K_{n}^{cep} \\
+\overline{S}^{cep}=\frac{1}{N}\sum_{n=1}^{N}S_{n}^{cep}
+$$
+​		式中，$n=1...N$，$N$为活跃语音帧的数量，活跃语音帧满足$E_n>E_{minSpeech}$。
+
+​		由此产生的倒频谱偏度$\overline{S}^{cep}$和峰度$\overline{K}^{cep}$可用于**描述语音信号的失真程度**。结果值较小，在0到1之间表示语音信号的高度退化（无序噪音的倒谱接近正态分布？未论证）。未失真信号的典型值在2到4之间。
+
+#### 2.2.2	Calculation of vocal tract parameters for unnatural voice detection计算用于非自然声音检测的声道参数
+
+在这个模块中，人类声道被建模成由多个等长的不同截面积的管子串联而成的系统（**声管模型**）。在短时间内，声道可表示为形状稳定的管道，并可以认为声波是沿管轴传播的平面波。根据语音信号，这些横截面面积被确定。然后对这些面积进行非自然变异分析。
+
+##### 2.2.2.1	Vocal tract model extraction声道模型提取
+
+​		带基音标记的语音信号流**允许在可变的时间坐标上从语音的浊音部分提取相关参数**。这比固定帧分析更能准确可靠地表示语音，这比固定帧长分析更能准确可靠地表示语音。这也意味着声道模型提取与分析模块是和语音波形产生同步进行的系统因为人类声道形变和语音波形同步变化。
+
+​		声道参数提取步骤如图所示：
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 8-P.563 – Vocal Tract Parameters extraction overview.png"/>
+
+###### 2.2.2.1.1	Speech frames语音帧
+
+​		**LPCs不是在固定帧长和固定间隔上逐帧计算，而是在基音同步帧上执行**，重叠率为50%。这里定义一个可变语音帧长总是包括两个连续的基音标记即可变语音帧的长度等于两个连续的基音标记之间距离的两倍。变长语音帧在第一个基音标记之前半个基音周期处开始，并在第二个基音标记之后半个基音周期结束。
+
+​		下图是一个关于可变帧划分示例，假设现在有三个连续的基音标记，分别为A,B,C
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 9-P.563 – Pitch synchronous LPC frames.png"/>
+
+###### 2.2.2.1.2	Linear Prediction Coefficients (LPC) calculation 线性预测编码LPC计算
+
+​		对之前定义的每一"帧"**提取八阶线性预测系数**。在计算自相关函数之前加汉明窗，采用**Schur递归法**（没具体了解过）得到预测系数。
+
+###### 2.2.2.1.3	Tube section area管界面面积
+
+​		8根声管的截面积Sm，用**反射系数$\mu$**计算，计算公式如下:
+$$
+S_{m}=\frac{1+\mu_{m}}{1-\mu_{m}}S_{m+1}
+$$
+​		计算每个基音周期的声管截面，得到的矩阵称为VTP，它代表从声门到嘴唇的声道管截面。
+
+2.2.2.1.4	Cavity tracking腔跟踪
+
+​		VTP信息被简化为3个参数，分别代表**前腔、中腔和后腔**。为了生成这些参数，VTP按以下方式分组:
+
+| Cavity | Tubes |
+| :----: | :---: |
+|  Rear  | 1,2,3 |
+| Middle | 4,5,6 |
+| Front  |  7,8  |
+
+​		每个基音标记处的结果存储在一个名为ART(articulators构音器官)的数组中。
+
+##### 2.2.2.2	Basic VTP descriptors基本VTP描述符
+
+###### 2.2.2.2.1	VTPMaxTubeSection
+
+​		这个参数是整个输入信号上第一个VTP管的最大截面尺寸。
+
+###### 2.2.2.2.2	FinalVtpAverage
+
+​		该参数代表了最后一个VTP管的平均截面尺寸。
+
+###### 2.2.2.2.3	ARTAverage
+
+​		该参数是后腔的**平均截面面积**。
+
+###### 2.2.2.2.4	ConsistentArtTracker
+
+​		这个参数描述了**后腔和中腔之间的相互关系**。对于每个基音帧，计算后腔和中腔的截面面积差。然后计算生成的阵列中平滑截面的长度。当连续的元素值变化不超过0.25时，截面被认为是一致的。然后，将这个长度在找到的截面数以及基音数上求平均。
+
+###### 2.2.2.2.5	VTPPeakTracker
+
+​		这个参数**跟踪声道内的振幅变化**。对于每一帧数据，找到八管中最大的截面位置。通过计算该位置阵列的导数来确定其变化量，然后对这个变量数组取平均值，这个变量数组可描述声道内的振幅变化。
+
+###### 2.2.2.2.6	VtpVadOverlap
+
+​		该参数计算整个语音中，**浊音段在语音部分（活跃语音段包含浊音以及声带不振动的清音等）的比例**。
+
+#### 2.2.3	Unnatural periodicity parameters不自然的周期性参数
+
+##### 2.2.3.1	Pitch frames correlation基音帧相关性
+
+​		这两个参数是基于浊音段的连续帧的，**而帧的构建类似于基音同步LPC帧**(参见2.2.2.1.1帧的构建).
+
+- PitchCrossPower是通过计算连续两帧之间的互功率来确定的。计算每个互功率估值的**峰均值比**，然后对峰均值比数组取平均。
+- PitchCorrelationOffset计算为连续帧的互相关。对于每对帧，计算**最大值位置到帧中心电的距离**，然后取平均距离。
+
+##### 2.2.3.2	Robotization机器人音
+
+​		含有太多周期性的的语音信号被称为**机器人音**，这些信号大多是由于GSM网络中使用的带宽限制造成的。
+
+​		要将信号分类为机器人音，只有在2200hz和3300hz之间的信号成分才有用。利用信号在这个范围内的分量，通过32毫秒长度的相邻信号帧的互相关性计算周期性。在这个过程中，下一步将帧分类为非静默帧和静默帧以及周期性帧和非周期性帧：**若帧的功率超过$10^6$，则一个帧是非沉默的**；**若其各自的互相关超过0.84，且$L_1$范数至少为2.52，则呈现周期性**。
+
+​		如果**非静默帧中周期帧的百分比大于3.4%**，则声明这至少3.4%的周期帧为机器人帧来计算机器人化模块输出值。
+
+##### 2.2.3.3	Frame repeats帧重复
+
+​		该模块被训练用于检测信号中的重复帧。该算法利用了重复帧通常具有的**高互相关特性**。算法的详细描述如下图所示：
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 10-P.563 – Evaluation of frame repeats.png"/>
+
+​		模块的输出有两个值：
+
+- FrameRepeats：该值表示当前信号中检测到的**帧重复次数**。
+- FrameRepeatsTotEnergy：这是所有检测到的**重复帧的能量总和**。
+
+##### 2.2.3.4	Unnatural beeps异常的哔哔声
+
+​		当一个信号被发出时，它可以用一个复合音来表示。然而，一个自然发出的声音总是包含**一个持续很短时间的浊音部分**。在这个信号描述符中，发声开始时不包含浊音分的持续时间短的复杂音调被称为异常的哔哔声。
+
+​		非自然哔哔声的检测器考虑的是持续时间为32毫秒、总长度为160毫秒、位移为16毫秒的时间信号帧的周期特性。周期性本身是由频率范围在250到1200赫兹之间的光谱不平直度推导出来的。如果**周期性在160毫秒内上下起伏**（不满足一致性特性），则判定该160ms语音为一种非自然的哔哔声，模块输出值计算如下：
+
+- UnnaturalBeeps：该值表示检测到的非自然哔哔的数量乘以1000，再除以处理过的采样点数量。
+- UnnaturalBeepsMean：被发现包含哔哔声的帧的平均能量和。
+- UnnaturalBeepsAffectedSamples：包含哔哔声的帧的采样点的总和。
+
+#### 2.2.4	Basic voice quality基本语音质量
+
+​		基本语音质量模块在**心理声学模型**的帮助下**评估波形失真的影响**，下图显示了**语音增强器和基于感知的侵入式语音质量测量**两个功能块的相互作用原理。
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 11-P.563 – Scheme for calculation of basic voice quality.png"/>
+
+##### 2.2.4.1	The speech enhancer语音增强器
+
+​		语音增强器可以分为三个逻辑模块，如下图所示。
+
+1)	**lpc分析**：使用Levinson-Durbin算法对时间信号进行分析，得到信号的残差和10个lpc系数。
+
+2)	**声道模型**：对lpc系数进行修改，使之适合人类说话者的声道模型。
+
+3)	**lpc合成**：将残差与修改后的lpc系数再次结合，重建语音增强过的时序信号。
+
+
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 12-P.563 – Scheme of the Speech Enhancer.png"/>
+
+##### 2.2.4.2	Intrusive perceptual speech quality measurement – Basic voice quality侵入式感知语音质量测量-基本语音质量
+
+​		侵入式感知语音质量测量是一种复杂的测量方法。因此，这里没有提供完整的描述，读者可以参考C源代码获得详细的描述。下面两张框图给出了算法的概述。提出了感知模型的核心和基本语音质量的最终确定方法。
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 13-P.563 – Overview of the perceptual model.png"/>
+
+<center><img src="https://pangcong1117.github.io/myblog/images/Figure 14-P.563 – Overview of the perceptual model – Integration part.png"/>
+###### 2.2.4.2.1	FFT window size
+
+​		选取长32ms (8 kHz采样率)的汉宁窗，使用短时傅里叶变换将时间信号映射到频域，帧重叠率为50%。
+
+###### 2.2.4.2.2	Absolute hearing threshold
+
+​		听觉的绝对阈限是指人的听觉系统感受到的最弱声音和痛觉声音的强度值，与声压有关。阈限以外，人耳感受性降低以致不能产生听觉。绝对听力阈限$P_{0}(f)$通过插值得到，并以此计算出Bark（巴克）域上24个临界频带的中心频率值，这些值存储在一个数组中，用于Zwicker响度公式。
+
+###### 2.2.4.2.3	The power scaling factor功率比例因子
+
+###### 2.2.4.2.4	The loudness scaling factor响度缩放因子
+
+###### 2.2.4.2.5	Computation of the active speech time interval活跃语音间隔计算
+
+​		语音文件如果开头和结尾处有较长时间的静默间距，这可能会影响文件中某些平均失真值的计算。因此，在这些文件的开头和结尾对静默部分进行了估计。从伪增强语音文件的开始和结束，五个连续的绝对采样值的总和必须超过500，以便将该位置视为活动语音间隔的开始或结束。开始和结束之间的时间间隔被定义为活动语音时间间隔。为了节省计算时间或存储空间，一些计算可以限制在活动时间间隔内。
+
+###### 2.2.4.2.6	Short-term Fast Fourier Transform短时快速傅里叶变换
+
+###### 2.2.4.2.7	Calculation of the pitch power densities计算基音功率密度
+
+Bark域尺度反映出，在低频时，人类听觉系统的频率分辨率比在高频时要高。这是通过对FFT带进行归一化，并将FFT的相应功率值相加来实现的，所得到的信号称为基音功率密度PPXWIRSS(f)n和PPYWIRSS(f)n。
+
+###### 2.2.4.2.8	Partial compensation of the pseudo-enhanced pitch power density for transfer function equalization根据传输函数均衡性，对伪增强的基音功率密度进行局部补偿
+
+###### 2.2.4.2.9	Partial compensation of the distorted pitch power density for time-varying gain variations between distorted and pseudo-enhanced signal根据失真和伪增强信号之间的时变增益变化，对失真的基音功率密度进行局部补偿
+
+###### 2.2.4.2.10	 Calculation of the loudness densities 计算响度密度
+
+​		在对滤波和短期增益变化进行部分补偿后，利用兹威克定律将伪增强型和劣化的基音功率密度转换到Sone响度尺度：
+$$
+LX(f)_{n}=S_{i}*(\frac{P_{0}(f)}{0.5}))^{\gamma}*[(0.5+0.5*\frac{PPX^{'}_{WIRSS}(f)_{n}}{P_0(f)})^\gamma-1]
+$$
+​		式中，$P_0(f)$是绝对听觉阈限，$S_l$是响度收缩因子（2.2.4.2.4）
+
+在Bark域4以上，兹威克幂是0.23。4以下，兹威克幂略有增加，以解释所谓的补偿效果。由此产生的二维阵列$LX(f)_n$和$LY(f)_n$称为响度密度。
+
+###### 2.2.4.2.11  Calculation of the disturbance density计算扰动密度
+
+​		计算失真和伪增强响度密度之间的差值。当这个差值为正时，说明一些成分如噪声就被加入了。当这个差值为负时，说明伪增强信号中的部分分量被忽略，这种差分阵列称为原始干扰密度。
+
+​		计算每个时频单元伪增强和伪退化的响度密度的最小值，并用最小值乘以0.25。相应的二维数组称为掩模数组。以下规则适用于每个时频单元：
+
+- 如果原始干扰密度为正且大于掩模值，则从原始干扰中减去掩模值。
+- 如果原始干扰密度介于正负掩模值之间，则干扰密度设置为零。
+- 如果原始干扰密度大于掩模值与-1的乘积，则掩模值加到原始干扰密度上。
+
+###### 2.2.4.2.12	  Cell-wise multiplication with an asymmetry factor
+
+###### 2.2.4.2.13	 Aggregation of the disturbance densities over frequency and emphasis on soft  parts of the pseudo-enhanced signal
+
+###### 2.2.4.2.14	 Aggregation of the disturbance within split second interval
+
+###### 2.2.4.2.15	  Aggregation of the disturbance over the duration of the speech signal, including a recency factor
+
+###### 2.2.4.2.16  Computation of the Basic Voice Quality基本语音质量的计算
+
+​		最终的输出值(BasicVoiceQuality)是平均干扰值(BasicVoiceQualitySym)，不对称扰动值(BasicVoiceQualityAsym)和频率范围在20到170Hz内的单位为db的平均功率谱密度值比较值(FractionLow)的一个线性组合。基本音质的范围是1到11。
+
+该模型的输出值为：
+
+- basicvoicequality：该值表示对声音干扰的估计。
+- basicvoicequalityasym：该值等于非对称帧扰动的积分值。
+
+### 2.3	Description of the functional block 'Additive Noise'功能块“加性噪音”的描述
