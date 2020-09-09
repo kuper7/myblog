@@ -474,8 +474,8 @@ $$
 ​		侵入式感知语音质量测量是一种复杂的测量方法。因此，这里没有提供完整的描述，读者可以参考C源代码获得详细的描述。下面两张框图给出了算法的概述。提出了感知模型的核心和基本语音质量的最终确定方法。
 
 <center><img src="https://pangcong1117.github.io/myblog/images/Figure 13-P.563 – Overview of the perceptual model.png"/>
-
 <center><img src="https://pangcong1117.github.io/myblog/images/Figure 14-P.563 – Overview of the perceptual model – Integration part.png"/>
+
 ###### 2.2.4.2.1	FFT window size
 
 ​		选取长32ms (8 kHz采样率)的汉宁窗，使用短时傅里叶变换将时间信号映射到频域，帧重叠率为50%。
@@ -540,3 +540,5 @@ $$
 - basicvoicequalityasym：该值等于非对称帧扰动的积分值。
 
 ### 2.3	Description of the functional block 'Additive Noise'功能块“加性噪音”的描述
+
+未完待续
