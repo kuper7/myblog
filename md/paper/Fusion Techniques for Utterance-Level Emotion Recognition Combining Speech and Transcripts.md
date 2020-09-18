@@ -1,6 +1,8 @@
+### 语音情感识别领域-论文阅读笔记1
+
 ## Fusion Techniques for Utterance-Level Emotion Recognition Combining Speech and Transcripts
 
-## 融合语音和文字的话语级别情感识别技术
+## 融合语音和文字的句段级别情感识别技术
 
 本文是对interspeech会议论文“Fusion Techniques for Utterance-Level Emotion Recognition Combining Speech and Transcripts”的阅读笔记，该文章是多模态情感识别领域的好文章，使用了语音和文本两种模态数据，深度学习网络为LSTM和CNN。
 
